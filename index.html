@@ -2,195 +2,26 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+  <script defer src="main.js"></script>
+  <title>Colors Combiner</title>
 </head>
 
 <body>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <h1>Colors Combiner</h1>
+  <h2>Drag and Drop</h2>
 
-        body {
-            font-family: system-ui;
-            padding: 40px;
-            display: flex;
-            flex-flow: column;
-            align-items: center;
-            justify-content: center;
-            row-gap: 20px;
-            background-color: #f4f4f4;
-        }
+  <div class="blending-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <div id="curr"></div>
+    <div id="prev"></div>
+  </div>
 
-        h1,
-        h2 {
-            text-align: center;
-            color: #888;
-        }
-
-        .container {
-            display: flex;
-            flex-flow: wrap;
-            gap: 20px;
-        }
-
-        div:has([type="color"]) {
-            display: flex;
-            flex-flow: wrap;
-            gap: 20px;
-        }
-
-        .color-square {
-            width: 100px;
-            aspect-ratio: 1;
-            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-        }
-
-        .blending-box {
-            width: 200px;
-            aspect-ratio: 1;
-            overflow: hidden;
-            border-radius: 50%;
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
-
-        }
-
-        .blending-box div {
-            width: 50%;
-            height: 30%;
-            float: left;
-            border: .5px solid #000;
-            border-bottom: .5px solid #000;
-            border-top: unset;
-            background: url(./nocolor.png);
-            background-size: 67px;
-            background-repeat: no-repeat;
-            background-position: 26px 23px;
-            border-radius: unset;
-        }
-
-        .blending-box div:last-child {
-            border-left: unset;
-            background-position: 5px 23px;
-        }
-
-        input[type="color"] {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            box-shadow: inset 0 0 0 4px black;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-        }
-
-        input[type="color"]::before {
-            content: "Choose Color";
-            position: absolute;
-            color: #ffc0cb;
-            top: 40px;
-            left: 8px;
-        }
-    </style>
-
-    <h1>Colors Combiner</h1>
-    <h2>Drag and Drop</h2>
-
-    <div class="blending-box" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <div id="curr"></div>
-        <div id="prev"></div>
-    </div>
-
-    <div class="container">
-        <div>
-            <input type="color" id="first-color" oninput="handleColorChange(this, 0)">
-            <input type="color" id="last-color" oninput="handleColorChange(this, 1)">
-        </div>
-    </div>
-
-    <script>
-        const stack = [];
-        const container = document.querySelector('.container');
-        const blendingBox = document.querySelector('.blending-box');
-        const currColorElem = document.querySelector('#curr');
-        const prevColorElem = document.querySelector('#prev');
-        showSquares();
-
-        function showSquares() {
-            const colors = ['yellow', 'red', 'green', 'blue', 'black', 'white', 'aqua', 'purple'];
-
-            for (const color of colors) {
-                const elem = document.createElement('div');
-                elem.classList.add('color-square');
-                elem.style.backgroundColor = color;
-                elem.draggable = true;
-                elem.ondragstart = e => drag(e);
-                container.appendChild(elem);
-            }
-        }
-
-        function handleColorChange(elem, pos) {
-            stack[pos] = hexToRgb(elem.value);
-            currColorElem.style.background = stack[0];
-            prevColorElem.style.background = stack[1];
-
-            if (stack.length === 2) {
-                const blendedColor = blendColors(stack[0], stack[1]);
-                blendingBox.style.background = blendedColor;
-            }
-        }
-
-        function allowDrop(ev) {
-            ev.preventDefault();
-        }
-
-        function drag(ev) {
-            const computedStyle = window.getComputedStyle(ev.target);
-            ev.dataTransfer.setData("background", computedStyle.backgroundColor);
-        }
-
-        function drop(ev) {
-            ev.preventDefault();
-            const data = ev.dataTransfer.getData("background");
-
-            stack.unshift(data);
-            currColorElem.style.background = data;
-
-            if (stack.length === 2) {
-                prevColorElem.style.background = stack[1];
-                const blendedColor = blendColors(stack[0], stack[1]);
-                blendingBox.style.background = blendedColor;
-            } else if (stack.length > 2) {
-                prevColorElem.style.background = stack[1];
-                const blendedColor = blendColors(stack[0], stack[1]);
-                blendingBox.style.background = blendedColor;
-                stack.pop();
-            }
-        }
-
-        function blendColors(color1, color2) {
-            const parseColor = (color) => color.match(/\d+/g).map(Number);
-            const rgb1 = parseColor(color1);
-            const rgb2 = parseColor(color2);
-            const blendedRGB = rgb1.map((value, index) => Math.round((value + rgb2[index]) / 2));
-            return `rgb(${blendedRGB.join(', ')})`;
-        }
-
-        function hexToRgb(hex) {
-            hex = hex.replace(/^#/, '');
-            const bigint = parseInt(hex, 16);
-            const r = (bigint >> 16) & 255;
-            const g = (bigint >> 8) & 255;
-            const b = bigint & 255;
-            return `rgb(${r}, ${g}, ${b})`;
-        }
-    </script>
-
+  <div class="container">
+    <input type="color" oninput="handleColorChange(this, 0)" />
+    <input type="color" oninput="handleColorChange(this, 1)" />
+  </div>
 </body>
 
 </html>
