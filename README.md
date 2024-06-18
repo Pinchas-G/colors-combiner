@@ -1,4 +1,4 @@
-# Color Mixer Project
+# Color Combiner
 
 This is a small project where users can mix two colors by dragging and dropping them into a large circle. The large circle will then display the resulting color, which is a blend of the two colors mixed together.
 
